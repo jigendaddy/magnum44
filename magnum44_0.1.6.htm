@@ -1,0 +1,248 @@
+<html>
+<head>
+<script src='https://code.jquery.com/jquery-3.2.1.min.js'></script>
+<script type='text/javascript'>
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+function generate_odai(){
+	var set = localStorage.getItem('preset');
+	let array_omote = []
+	let array_ura = []
+	if(set==1 || !set){
+		set=1
+		localStorage.setItem('preset', '1');
+		array_omote = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+		array_ura = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+	}
+	else if(set==2){
+		array_omote = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","r","s","v","w","x","z",",",".","/",";"]
+		array_ura = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","R","S","U","V","W"]
+	}
+	else{
+		array_omote = ["1","2","3","4","5","6","7","8","9","0"]
+	}
+	array_omote = array_omote.filter(Boolean);
+	array_ura = array_ura.filter(Boolean);
+	var str = '';
+	var tmp = '';
+	var train = 0
+	var maxTypingLength = 44
+	shuffleArray(array_omote)
+	shuffleArray(array_ura)
+	var finger = localStorage.getItem('finger');
+	while (train < maxTypingLength) {
+		var num = Math.floor(Math.random() * finger);
+		if(num==1 && set%3>0){
+			num = Math.floor(Math.random() * array_ura.length);
+			tmp= array_ura[num]
+		}
+		else{
+			num = Math.floor(Math.random() * array_omote.length);
+			tmp= array_omote[num]
+		}
+		str = str + tmp
+		train++
+		if (train == maxTypingLength) {
+    		break;
+ 		}
+		num = Math.floor(Math.random() * (array_omote.length+array_ura.length));
+		if(num==1){
+			str = str + '空'
+			train++
+		}
+	}
+	sessionStorage.setItem('magnum', str);
+}
+window.onload = function() {
+	$('#answer').attr('readonly',true);
+	$('#start').focus();
+	var finger = localStorage.getItem('finger');
+	if(!finger){
+		finger = 4
+		localStorage.setItem('finger', 4);
+	}
+	$("#slider").val(finger)
+	$("#finger").text(finger)
+	var set = localStorage.getItem('preset');
+	let champ = 0
+	if(set==1){
+    	champ = localStorage.getItem('record1');
+    	if(champ>0){
+			$('#record').text("あなたの自己記録（デフォルト）は"+champ/1000+"秒です");
+		}
+    }
+    else if(set==2){
+    	champ = localStorage.getItem('record2');
+    	if(champ>0){
+			$('#record').text("あなたの自己記録（猫瓶）は"+champ/1000+"秒です");
+		}
+    }
+    else{
+    	champ = localStorage.getItem('record3');
+    	if(champ>0){
+			$('#record').text("あなたの自己記録（数字）は"+champ/1000+"秒です");
+		}
+    }
+}
+$(function(){
+    $('#start').click(function(){
+    	generate_odai()
+  		let str = sessionStorage.getItem('magnum');
+    	$('#odai').text(str);
+  		str = str.replace(/空/g, " ");
+  		sessionStorage.setItem('magnum', str);
+    	$('#answer').attr('readonly',false);
+    	var holster = Date.now()
+    	sessionStorage.setItem('start', holster);
+    	$(this).hide()
+    	$(this).nextAll().hide();
+    	$('#stop,#mcheck').show();
+    	$('#answer').focus();    	
+    	set = localStorage.getItem('preset');
+    	$("#answer").keydown(function(event){
+        	var keyCode = event.key;
+   	   		if(keyCode==="u" && set==2){
+   	   			var cut=$("#answer").val().slice(0,-1)
+        		$("#answer").val(cut);
+        		if(str!= $("#answer").val()){
+                	var tomato = str.slice(0, $("#answer").val().length)
+                	if(tomato!= $("#answer").val()){
+                		$('#mcheck').text('ミスがあります');
+                	}
+                	else{
+                		$('#mcheck').text('');
+                	}
+                }
+   	   			return false;
+   	   		}
+   	   		else if(keyCode==="Enter"){
+   	   			location.reload()
+   	   		}
+   	   			
+ 	 	});
+    });
+    $('#stop').click(function(){
+  		location.reload()
+    });
+    $('#setting').click(function(){
+  		$('#trident,#rare').show();
+    });
+    $('#trident1').click(function(){
+  		alert('デフォルトに変更しました');
+  		localStorage.setItem('preset', '1');
+  		location.reload()
+    });
+    $('#trident2').click(function(){
+  		alert('猫瓶に変更しました');
+  		localStorage.setItem('preset', '2');
+  		location.reload()
+    });
+    $('#trident3').click(function(){
+  		alert('数字に変更しました');
+  		localStorage.setItem('preset', '3');
+  		location.reload()
+    });
+    $("#answer").on({
+        "input" : function(e) {
+        	var str = sessionStorage.getItem('magnum');
+        	if(str!=$(this).val()){
+        		var tomato = str.slice(0,$(this).val().length)
+            	if(tomato!=$(this).val()){
+            		$('#mcheck').text('ミスがあります');
+            	}
+            	else{
+            		$('#mcheck').text('');
+            	}
+            }
+            else{
+            	holster = Date.now()
+    			sessionStorage.setItem('end', holster);
+    			var time_start = sessionStorage.getItem('start');
+    			var time_end = sessionStorage.getItem('end');
+    			var record = time_end - time_start
+    			var set = localStorage.getItem('preset');
+    			if(set==1){
+    				champ = localStorage.getItem('record1');
+    			}
+    			else if(set==2){
+    				champ = localStorage.getItem('record2');
+    			}
+    			else{
+    				champ = localStorage.getItem('record3');
+    			}
+    			if(record>champ){
+    				if(!champ){
+    					if(set==1){
+    						localStorage.setItem('record1', record);
+    					}
+    					else if(set==2){
+    						localStorage.setItem('record2', record);
+    					}
+    					else{
+    						localStorage.setItem('record3', record);
+    					}
+    				}
+    				var result = window.confirm('あなたのタイムは' + record / 1000 +'秒です');
+    				if(result){
+    					location.reload()
+    				}
+    			}
+    			else{
+    				if(set==1){
+    					localStorage.setItem('record1', record);
+    				}
+    				else if(set==2){
+    					localStorage.setItem('record2', record);
+    				}
+    				else{
+    					localStorage.setItem('record3', record);
+    				}
+    				alert('自己記録更新です')
+    				var result = window.confirm('あなたのタイムは' + record / 1000 +'秒です');
+    				if(result){
+    					location.reload()
+    				}
+    			}
+    			
+            }
+        }
+	});
+	$("#slider").on({
+		"input" : function(e) {
+			$('#finger').text($(this).val());
+			localStorage.setItem('finger', $(this).val());
+		}
+	});
+});
+</script>
+<style type="text/css">
+#odai{
+	overflow-wrap: break-word;
+}
+#mcheck{
+	color:#ff0000;
+}
+</style>
+</head>
+<body>
+<div style="text-align: center;">
+<h1 id="odai">magnum44</h1>
+<input type="tel" id="answer" style="width: 50%; font-size: 24px;" autocomplete="off">
+<br>
+<br>
+<input type="button" id="start" value="開始" style="height:48px;width:48px;margin-right:16px">
+<input type="button" id="stop" value="中断" style="height:48px;width:48px;margin-right:16px;display:none;">
+<input type="button" id="setting" value="設定" style="height:48px;width:48px;margin-right:16px">
+<br>
+<p id="mcheck"></p>
+<p id="record"></p>
+<p id="trident" style="display:none;"><a href="#" id="trident1" style="margin-right:16px">デフォルト</a><a href='#' id="trident2" style="margin-right:16px">猫瓶</a><a href='#'  id="trident3" style="margin-right:16px">数字</a></p>
+<p id="rare" style="display:none;"><span>大文字の出現頻度は</span><input type="range" id="slider" min="2" max="5" step="1" value="4"><span id="finger">4</span>分の1です</p>
+</div>
+</body>
+</html>
